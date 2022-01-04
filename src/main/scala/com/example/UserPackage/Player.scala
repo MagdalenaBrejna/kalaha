@@ -1,5 +1,10 @@
 package com.example.UserPackage
 
-class Player {
+import com.example.GameboardPackage.Game
 
+import javax.swing.{JButton, JTextField, JTextPane}
+
+class Player() {
+  def moveRequest(board: Game): Unit = {
+  }
 }

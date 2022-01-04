@@ -64,8 +64,8 @@ class KalahaGUI {
     gameWindow.setParagraphAttributes(attribs, true)
     frame.add(panelCenter, BorderLayout.CENTER)
 
-    //buttonVersion2.addActionListener(
-    //  (e: ActionEvent) => playOfOneHumenUser(buttonPlayer1, user1TextInput, gameWindow, panelEast))
+    buttonVersion2.addActionListener(
+      (e: ActionEvent) => playOfOneHumenUser(buttonPlayer1, user1TextInput, gameWindow, panelEast))
     buttonVersion3.addActionListener(
       (e: ActionEvent) => playOfTwoHumanUsers(buttonPlayer1, buttonPlayer2, user1TextInput, user2TextInput, gameWindow, panelEast, panelWest))
 
@@ -74,24 +74,26 @@ class KalahaGUI {
     frame.setVisible(true)
   }
 
-/*
+
   def playOfOneHumenUser(userButton1: JButton, user1TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel): Unit = {
     user1Panel.setVisible(true)
 
-    val gameBoard = new Game(Game.createBoardArray(6), Game.getPlayer())
-    val player1 = new User(userButton1.getText, userButton1, user1TextInput)
-    val player2 = new Computer()
-    val server = new Server(player1, player2, gameBoard, gameMessageOutput)
-    server.processGame()
+    val game = new Game(Game.createBoardArray(6), Game.getFirstPlayer())
+    val player1 = new User(userButton1.getText, userButton1, user1TextInput, game, gameMessageOutput)
+    val player2 = new Computer(game, gameMessageOutput)
+    player1.setEnemy(player2)
+    player2.setEnemy(player1)
+    val server = new Server(game, gameMessageOutput)
+    server.startGame()
   }
 
- */
+
 
   def playOfTwoHumanUsers(userButton1: JButton, userButton2: JButton, user1TextInput: JTextField, user2TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel, user2Panel: JPanel): Unit = {
     user1Panel.setVisible(true)
     user2Panel.setVisible(true)
 
-    val game = new Game(Game.createBoardArray(6), Game.getPlayer())
+    val game = new Game(Game.createBoardArray(6), Game.getFirstPlayer())
     val player1 = new User(userButton1.getText, userButton1, user1TextInput, game, gameMessageOutput)
     val player2 = new User(userButton2.getText, userButton2, user2TextInput, game, gameMessageOutput)
     player1.setEnemy(player2)

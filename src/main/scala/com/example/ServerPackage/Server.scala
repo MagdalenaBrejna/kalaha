@@ -2,7 +2,7 @@ package com.example.ServerPackage
 
 import akka.util.Timeout
 import com.example.GameboardPackage.Game
-import com.example.UserPackage.User
+import com.example.UserPackage.{Player, User}
 
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import javax.swing.JTextPane
@@ -26,7 +26,7 @@ class Server(private val game: Game, private val gamePane: JTextPane) {
     gamePane.setText(game.printGameBoard)
   }
 
-  def processGame(player: User): Unit = {
+  def processGame(player: Player): Unit = {
     player.moveRequest(game)
     //FutureUtil.futureWithTimeout(Future{player.moveRequest(game)}, new FiniteDuration(30, TimeUnit.SECONDS))
     //val f = Future{player.moveRequest(game)}
@@ -37,7 +37,7 @@ class Server(private val game: Game, private val gamePane: JTextPane) {
     //}
   }
 
-  def moveReceived(player: User, userField: Int): Unit = {
+  def moveReceived(player: Player, userField: Int): Unit = {
     game.processPlayerMove(userField)
     game.changeActivePlayer()
     gamePane.setText(game.printGameBoard)

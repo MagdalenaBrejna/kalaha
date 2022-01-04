@@ -24,10 +24,7 @@ object Game {
     createBoardArrayInner(FIRST_INDEX_PLAYER1,numberOfStones).toArray
   }
 
-  def getPlayer(): Int = {
-    val random = new Random
-    random.nextInt(2) + 1
-  }
+  def getFirstPlayer(): Int = { 1 }
 }
 
 class Game(private var board: Array[Int], private var activePlayer: Int){
@@ -62,8 +59,6 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
 
   //process game
 
-
-
   def processPlayerMove(chosenField: Int): Unit = {
     if (checkChosenField(chosenField)) {
       val stonesNumber = board(chosenField)
@@ -91,7 +86,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
     }
   }
 
-  private def checkChosenField(field: Int): Boolean = {
+  def checkChosenField(field: Int): Boolean = {
     if (board(field) == 0) false
     else if (activePlayer == PLAYER_1_ROUND) {
       if (field < FIRST_INDEX_PLAYER1 || field > HOLE_PLAYER1 - 1) false
@@ -115,7 +110,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   }
 
   def stealStones(index1: Int, index2: Int, indexOfHole: Int): Unit = {
-    val indexToStealFrom = index1 - 1 - indexOfHole
+    val indexToStealFrom = 12 - indexOfHole
     board(index2) += board(indexToStealFrom)
     board(indexToStealFrom) = 0
   }
