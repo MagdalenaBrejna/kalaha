@@ -1,12 +1,7 @@
 package com.example.DecisionTreePackage
 
 import com.example.DecisionTreePackage.DecisionTree._
-import com.example.GameboardPackage.Gameboard
-
-/* This tree makes bruteforce calculation for the best path in order to gain the biggest advantage based on
-  calculated outputs. it is a tree that has x levels described in constant COMPUTER_FORESEE_LEVELS. Tree takes
-  the best output at the lowest level of the tree and takes it as path to win.
- */
+import com.example.GameboardPackage.Game
 
 object DecisionTree {
   private val FIRST_INDEX_PLAYER1 = 0
@@ -18,38 +13,35 @@ object DecisionTree {
   private val COMPUTER_FORESEE_LEVELS = 2
 }
 
-class DecisionTree(var gameboard: Gameboard) {
-  private[this] val  root = new Node(gameboard.boardClone(),gameboard.getWhoseRound,0,null,-1)
+class DecisionTree(var game: Game) {
+  private[this] val  root = new Node(game.boardClone(), game.getActivePlayerNumber,0,null,-1)
 
-  class Node(private[this] val board: Gameboard, private[this] val playerNumber: Int, private val level: Int,private val parent: Node, private val fieldChoice: Int) {
+  class Node(private[this] val board: Game, private[this] val playerNumber: Int, private val level: Int, private val parent: Node, private val fieldChoice: Int) {
 
     private var children: List[Node] = Nil
-    private val advantage = if (board.getWhoseRound == playerNumber) board.calculateAdvantage()
+    private val advantage = if (board.getActivePlayerNumber == playerNumber) board.countPlayerResultsDifference()
     else {
-      board.changePlayer()
-      val temp = board.calculateAdvantage()
-      board.changePlayer()
+      board.changeActivePlayer()
+      val temp = board.countPlayerResultsDifference()
+      board.changeActivePlayer()
       temp
     }
 
-    def calculateChildren(): List[Node] = { //This method is calculating best route for enemy and user at the same time
-      def calculateChildrenHelp(currentIndex: Int): List[Node] = {
-        if ((board.getWhoseRound == PLAYER_1_ROUND && (currentIndex >= BASE_INDEX_PLAYER1 || currentIndex < FIRST_INDEX_PLAYER1)
-          || (board.getWhoseRound == PLAYER_2_ROUND && (currentIndex >= BASE_INDEX_PLAYER2 || currentIndex < FIRST_INDEX_PLAYER2)))) Nil
+    def findNodeChildren(): List[Node] = {
+      def findChildrenInner(currentIndex: Int): List[Node] =
+        if ((board.getActivePlayerNumber == PLAYER_1_ROUND && (currentIndex >= BASE_INDEX_PLAYER1 || currentIndex < FIRST_INDEX_PLAYER1) || (board.getActivePlayerNumber == PLAYER_2_ROUND && (currentIndex >= BASE_INDEX_PLAYER2 || currentIndex < FIRST_INDEX_PLAYER2)))) Nil
         else {
-          if (!board.endGameCheck() && board.getElem(currentIndex) != 0) {
+          if (!board.checkIfEnd() && board.getBoardHole(currentIndex) != 0) {
             val testBoard = board.boardClone()
-            testBoard.playerMove(currentIndex)
+            testBoard.processPlayerMove(currentIndex)
             val child = new Node(testBoard, playerNumber, level + 1, this, currentIndex)
-            child :: calculateChildrenHelp(currentIndex + 1)
+            child :: findChildrenInner(currentIndex + 1)
           } else {
             if (currentIndex + 1 == BASE_INDEX_PLAYER1 || currentIndex + 1 >= BASE_INDEX_PLAYER2) Nil
-            else calculateChildrenHelp(currentIndex + 1)
+            else findChildrenInner(currentIndex + 1)
           }
         }
-      }
-      children = calculateChildrenHelp(if (board.getWhoseRound == PLAYER_1_ROUND) FIRST_INDEX_PLAYER1 else FIRST_INDEX_PLAYER2)
-      children
+      findChildrenInner(if (board.getActivePlayerNumber == PLAYER_1_ROUND) FIRST_INDEX_PLAYER1 else FIRST_INDEX_PLAYER2)
     }
 
     def getChildren(): List[Node] = {
@@ -75,11 +67,11 @@ class DecisionTree(var gameboard: Gameboard) {
     override def toString: String = s"[$advantage $level $fieldChoice]"
   }
 
-  def createTree(): Unit = {
+  def createDecisionTree(): Unit = {
     def createTreeHelp(nodeQueue: List[Node]): Unit = {
       nodeQueue match {
         case h :: t => if (h.getLevel() >= COMPUTER_FORESEE_LEVELS) ()
-        else createTreeHelp(t ::: h.calculateChildren())
+        else createTreeHelp(t ::: h.findNodeChildren())
         case Nil => ()
       }
     }

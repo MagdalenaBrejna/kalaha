@@ -1,70 +1,102 @@
 package com.example.KalahaGUI
 
-import com.example.KalahaGUI.ControllerGUI.{pcVsPc, userVsPc, userVsUser}
+import akka.actor.{ActorSystem, Props}
+import com.example.GameboardPackage.Game
+import com.example.ServerPackage.Server
+import com.example.UserPackage.{Computer, User}
 
 import java.awt.event.ActionEvent
-import java.awt.{BorderLayout, GridLayout}
+import java.awt.{BorderLayout, GridLayout, Label}
 import javax.swing.{JButton, JFrame, JPanel, JTextField, JTextPane, WindowConstants}
 import javax.swing.text.{SimpleAttributeSet, StyleConstants}
 
 class KalahaGUI {
-  private val frame = new JFrame
-  private val buttonVersion1 = new JButton("PC vs PC")
-  private val buttonVersion2 = new JButton("USER vs PC")
-  private val buttonVersion3 = new JButton("USER vs USER")
+
+  private val buttonVersion2 = new JButton("USER - Computer")
+  private val buttonVersion3 = new JButton("USER - USER")
   private val buttonPlayer1 = new JButton("Player 1")
   private val buttonPlayer2 = new JButton("Player 2")
+
   private val panelWest = new JPanel()
+  private val panelEast = new JPanel()
   private val panelNorth = new JPanel()
-  private val panelSOUTH = new JPanel()
-  private val panelCENTER = new JPanel()
+  private val panelCenter = new JPanel()
+
   private val user1TextInput = new JTextField()
   private val user2TextInput = new JTextField()
+
+  private val user1Label = new Label()
+  private val user2Label = new Label()
+
+  private val frame = new JFrame
   private val gameWindow = new JTextPane()
 
-  def run() ={
+  def buildGameLayout() = {
 
-    panelNorth.setLayout(new GridLayout(1, 3))
-    panelNorth.add(buttonVersion1)
+    panelNorth.setLayout(new GridLayout(1, 2))
     panelNorth.add(buttonVersion2)
     panelNorth.add(buttonVersion3)
+    frame.add(panelNorth, BorderLayout.NORTH)
 
-    panelWEST.setLayout(new GridLayout(3, 1))
-
-   /* panelWEST.setLayout(new GridLayout(3, 1))
-    panelWEST.add(buttonVersion1)
-    panelWEST.add(buttonVersion2)
-    panelWEST.add(buttonVersion3)
-    panelSOUTH.setLayout(new GridLayout(2, 1))
-    panelSOUTH.add(user1TextInput)
-    panelSOUTH.add(user2TextInput)
-    panelSOUTH.add(buttonPlayer1)
-    panelSOUTH.add(buttonPlayer2)
-    panelCENTER.setLayout(new GridLayout(1, 1))
-    panelCENTER.add(gameWindow)
+    panelEast.setLayout(new GridLayout(3, 1))
+    user1Label.setText("      User 1")
+    panelEast.add(user1Label)
+    panelEast.add(user1TextInput)
     user1TextInput.setHorizontalAlignment(javax.swing.SwingConstants.CENTER)
+    panelEast.add(buttonPlayer1)
+    panelEast.setVisible(false)
+    frame.add(panelEast, BorderLayout.EAST)
+
+    panelWest.setLayout(new GridLayout(3, 1))
+    user2Label.setText("      User 2")
+    panelWest.add(user2Label)
+    panelWest.add(user2TextInput)
     user2TextInput.setHorizontalAlignment(javax.swing.SwingConstants.CENTER)
-    buttonVersion1.addActionListener(
-      (e: ActionEvent) => pcVsPc(buttonPlayer1, buttonPlayer2, user1TextInput, user2TextInput, gameWindow))
-    buttonVersion2.addActionListener(
-      (e: ActionEvent) => userVsPc(buttonPlayer1, buttonPlayer2, user1TextInput, user2TextInput, gameWindow))
-    buttonVersion3.addActionListener(
-      (e: ActionEvent) => userVsUser(buttonPlayer1, buttonPlayer2, user1TextInput, user2TextInput, gameWindow))
-    buttonPlayer1.setVisible(false)
-    buttonPlayer2.setVisible(false)
+    panelWest.add(buttonPlayer2)
+    panelWest.setVisible(false)
+    frame.add(panelWest, BorderLayout.WEST)
+
+    panelCenter.setLayout(new GridLayout(1, 1))
+    panelCenter.add(gameWindow)
     val attribs = new SimpleAttributeSet
     StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_CENTER)
     gameWindow.setEditable(false)
     gameWindow.setParagraphAttributes(attribs, true)
-    frame.add(panelWEST, BorderLayout.WEST)
-    frame.add(panelSOUTH, BorderLayout.SOUTH)
-    frame.add(panelCENTER, BorderLayout.CENTER)
-    frame.setSize(500, 180)
+    frame.add(panelCenter, BorderLayout.CENTER)
+
+    //buttonVersion2.addActionListener(
+    //  (e: ActionEvent) => playOfOneHumenUser(buttonPlayer1, user1TextInput, gameWindow, panelEast))
+    buttonVersion3.addActionListener(
+      (e: ActionEvent) => playOfTwoHumanUsers(buttonPlayer1, buttonPlayer2, user1TextInput, user2TextInput, gameWindow, panelEast, panelWest))
+
+    frame.setSize(600, 200)
     frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE)
     frame.setVisible(true)
-     */
-
   }
 
+/*
+  def playOfOneHumenUser(userButton1: JButton, user1TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel): Unit = {
+    user1Panel.setVisible(true)
 
+    val gameBoard = new Game(Game.createBoardArray(6), Game.getPlayer())
+    val player1 = new User(userButton1.getText, userButton1, user1TextInput)
+    val player2 = new Computer()
+    val server = new Server(player1, player2, gameBoard, gameMessageOutput)
+    server.processGame()
+  }
+
+ */
+
+  def playOfTwoHumanUsers(userButton1: JButton, userButton2: JButton, user1TextInput: JTextField, user2TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel, user2Panel: JPanel): Unit = {
+    user1Panel.setVisible(true)
+    user2Panel.setVisible(true)
+
+    val game = new Game(Game.createBoardArray(6), Game.getPlayer())
+    val player1 = new User(userButton1.getText, userButton1, user1TextInput, game, gameMessageOutput)
+    val player2 = new User(userButton2.getText, userButton2, user2TextInput, game, gameMessageOutput)
+    player1.setEnemy(player2)
+    player2.setEnemy(player1)
+    val server = new Server(game, gameMessageOutput)
+    server.startGame()
+  }
 }

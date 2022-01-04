@@ -1,29 +1,28 @@
 package com.example.UserPackage
 
-
-import akka.actor.{Actor, ActorRef}
-import com.example.GameboardPackage.Gameboard
+import com.example.GameboardPackage.Game
 import com.example.ServerPackage.Server
 
-import java.awt.event.ActionEvent
+import java.awt.event.{ActionEvent, MouseEvent}
 import javax.swing._
 
-class User(private[this] val name:String, private[this] val button: JButton,
-           private[this] val textArea: JTextField) extends Actor {
+class User(private val userName: String, private val userMoveButton: JButton, private val userText: JTextField, private val game: Game, private val gamePane: JTextPane, private var enemy: User = null) extends Player{
 
-  private[this] var senderval: ActorRef = _
+  val server = new Server(game, gamePane)
 
-  button.addActionListener((e: ActionEvent) => {
-    val userField = textArea.getText()
-    textArea.setText("")
-    button.setText(name)
-    senderval! Server.UserMoveReceived(Integer.parseInt(userField))}
-  )
-
-  override def receive: Receive = {
-    case Server.UserMoveRequest(board: Gameboard) =>
-      senderval = sender()
-      button.setText("Write Move Above!")
+  def setEnemy(user2: User): Unit = {
+    enemy = user2
   }
+
+  def moveRequest(board: Game): Unit = {
+      userMoveButton.setText("Your turn!")
+  }
+
+  userMoveButton.addActionListener((e: ActionEvent) => {
+    val userField = userText.getText()
+    userText.setText("")
+    userMoveButton.setText("")
+    server.moveReceived(enemy, Integer.parseInt(userField))}
+  )
 }
 

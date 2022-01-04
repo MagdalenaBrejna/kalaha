@@ -1,65 +1,54 @@
 package com.example.ServerPackage
 
-import akka.actor.{Actor, ActorRef}
-import akka.pattern.ask
 import akka.util.Timeout
-import com.example.GameboardPackage.Gameboard
+import com.example.GameboardPackage.Game
+import com.example.UserPackage.User
 
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import javax.swing.JTextPane
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.DurationInt
-import scala.util.{Failure, Success}
+import scala.concurrent.{Await, ExecutionContext, Future, TimeoutException}
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.util.{Failure, Success, Try}
 
+class Server(private val game: Game, private val gamePane: JTextPane) {
 
-object Server {
-  case class EndGame()                          //Ends the game
-  case class DataNotReceived()                  //Ends the game if data not received
-  case class UserMoveRequest(board: Gameboard)  //Send packet for user to gain his move
-  case class UserMoveReceived(userField: Int)   //Information for server that data was received
-  case class ServerAction()                     //Information for server that he should send next packets
-}
-class Server(private[this] val player1: ActorRef, private[this] val player2: ActorRef,
-             private[this] val board: Gameboard, private[this] val gameMessageOutput:JTextPane) extends Actor {
+  implicit val ec = ExecutionContext.global
 
-  implicit val timeout: Timeout = {
-    Timeout(30.seconds)
+  def timeoutFuture[A](f: Future[A]): Try[A] =
+    Try { Await.result(f, 10.seconds) }
+
+  def stopGame(): Unit = {
+    gamePane.setText(game.printGameResult())
   }
 
-  override def receive: Receive = {
+  def startGame(): Unit = {
+    gamePane.setText(game.printGameBoard)
+  }
 
-    case Server.EndGame() =>
-      gameMessageOutput.setText(board.stringResult())
-      context.system.terminate()
+  def processGame(player: User): Unit = {
+    player.moveRequest(game)
+    //FutureUtil.futureWithTimeout(Future{player.moveRequest(game)}, new FiniteDuration(30, TimeUnit.SECONDS))
+    //val f = Future{player.moveRequest(game)}
+    //try {
+    //  timeoutFuture(f)
+    //}catch{
+    //  case e: TimeoutException => System.out.println("!")
+    //}
+  }
 
-    case Server.DataNotReceived() =>
-      context.system.terminate()
+  def moveReceived(player: User, userField: Int): Unit = {
+    game.processPlayerMove(userField)
+    game.changeActivePlayer()
+    gamePane.setText(game.printGameBoard)
+    if (game.checkIfEnd()) stopGame()
+    else processGame(player)
+  }
 
-    case Server.UserMoveReceived(userField) =>
-      board.playerMove(userField)
-      gameMessageOutput.setText(board.toString)
-      if (board.endGameCheck()) self ! Server.EndGame()
-      else self ! Server.ServerAction()
-
-    case Server.ServerAction() =>
-      gameMessageOutput.setText(board.toString)
-      if (board.getWhoseRound == 1) {
-        val future = player1 ? Server.UserMoveRequest(board)
-        future onComplete {
-          case Success(userField) =>
-            self ! userField
-          case Failure(_) =>
-            gameMessageOutput.setText("Waited Too long! Game Ends now")
-            self ! Server.DataNotReceived()
-        }
-      } else {
-        val future = player2 ? Server.UserMoveRequest(board)
-        future onComplete {
-          case Success(userField) =>
-            self ! userField
-          case Failure(_) =>
-            gameMessageOutput.setText("Waited Too long! Game Ends now")
-            self ! Server.DataNotReceived()
-        }
-      }
+  def processMove(future: Future[Any]): Unit = {
+    future onComplete {
+      case Success(userField) => userField
+      case Failure(_) => gamePane.setText("30 seconds without a move. Game over")
+    }
   }
 }
