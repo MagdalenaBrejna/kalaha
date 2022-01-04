@@ -1,10 +1,13 @@
 package com.example.UserPackage
 
 import com.example.GameboardPackage.Game
+import com.example.ServerPackage.Server
+import javax.swing.{JTextPane}
 
-import javax.swing.{JButton, JTextField, JTextPane}
+class Player(private val game: Game, private val gamePane: JTextPane) {
+  val server = new Server(game, gamePane)
 
-class Player() {
-  def moveRequest(board: Game): Unit = {
-  }
+  def moveRequest(board: Game): Unit = {}
+
+  def setEnemy(user2: Player): Unit = {}
 }

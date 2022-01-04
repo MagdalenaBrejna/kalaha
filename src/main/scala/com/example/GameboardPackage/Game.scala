@@ -1,27 +1,23 @@
 package com.example.GameboardPackage
 
 import com.example.GameboardPackage.Game._
-import com.example.UserPackage.User
-
-import scala.util.Random
 
 object Game {
-
-  private val FIRST_INDEX_PLAYER1 = 0
+  private val PLAYER_1 = 1
+  private val PLAYER_2 = 2
+  private val INDEX1_PLAYER1 = 0
+  private val INDEX2_PLAYER2 = 7
   private val HOLE_PLAYER1 = 6
-  private val FIRST_INDEX_PLAYER2 = 7
   private val HOLE_PLAYER2 = 13
   private val HOLES_NUMBER = 14
-  private val PLAYER_1_ROUND = 1
-  private val PLAYER_2_ROUND = 2
 
   def createBoardArray(numberOfStones: Int): Array[Int] = {
     def createBoardArrayInner(currentIndex:Int, numberOfStones:Int): List[Int] = {
       if (currentIndex > HOLE_PLAYER2) Nil
-      else if ((currentIndex + 1)%7 == 0) 0 :: createBoardArrayInner(currentIndex + 1,numberOfStones)
-      else numberOfStones :: createBoardArrayInner(currentIndex + 1,numberOfStones)
+      else if ((currentIndex + 1)%7 == 0) 0 :: createBoardArrayInner(currentIndex + 1, numberOfStones)
+      else numberOfStones :: createBoardArrayInner(currentIndex + 1, numberOfStones)
     }
-    createBoardArrayInner(FIRST_INDEX_PLAYER1,numberOfStones).toArray
+    createBoardArrayInner(INDEX1_PLAYER1,numberOfStones).toArray
   }
 
   def getFirstPlayer(): Int = { 1 }
@@ -44,22 +40,21 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
     activePlayer
   }
 
-  def changeActivePlayer(): Unit ={
-    if (activePlayer == PLAYER_1_ROUND) activePlayer = PLAYER_2_ROUND
-    else activePlayer = PLAYER_1_ROUND
+  def changeActivePlayer(): Unit = {
+    if (activePlayer == PLAYER_1) activePlayer = PLAYER_2
+    else activePlayer = PLAYER_1
   }
 
 
   def checkIfEnd(): Boolean = {
-    if ((board.slice(FIRST_INDEX_PLAYER1, HOLE_PLAYER1).sum == 0 && activePlayer == PLAYER_1_ROUND) || (board.slice(FIRST_INDEX_PLAYER2,HOLE_PLAYER2).sum == 0 && activePlayer == PLAYER_2_ROUND)) true
+    if ((board.slice(INDEX1_PLAYER1, HOLE_PLAYER1).sum == 0 && activePlayer == PLAYER_1) || (board.slice(INDEX2_PLAYER2, HOLE_PLAYER2).sum == 0 && activePlayer == PLAYER_2)) true
     else false
   }
 
 
-
   //process game
 
-  def processPlayerMove(chosenField: Int): Unit = {
+  def processPlayerMove(chosenField: Int): Boolean = {
     if (checkChosenField(chosenField)) {
       val stonesNumber = board(chosenField)
       board(chosenField) = 0
@@ -67,32 +62,33 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
       def processPlayerMoveInner(index: Int, stonesToReplace: Int): Unit =
         if (stonesToReplace > 0) {
 
-          if (activePlayer == PLAYER_1_ROUND) {
+          if (activePlayer == PLAYER_1) {
             if (index != HOLE_PLAYER2) {
               board(index) = board(index) + 1
               processPlayerMoveInner((index + 1) % HOLES_NUMBER, stonesToReplace - 1)
-            } else processPlayerMoveInner(FIRST_INDEX_PLAYER1, stonesToReplace)
+            } else processPlayerMoveInner(INDEX1_PLAYER1, stonesToReplace)
 
           } else {
             if (index != HOLE_PLAYER1) {
               board(index) = board(index) + 1
               processPlayerMoveInner((index + 1) % HOLES_NUMBER, stonesToReplace - 1)
-            } else processPlayerMoveInner(FIRST_INDEX_PLAYER2, stonesToReplace)
+            } else processPlayerMoveInner(INDEX2_PLAYER2, stonesToReplace)
           }
 
         } else allStonesMoved(index)
 
       processPlayerMoveInner(chosenField + 1, stonesNumber)
-    }
+      true
+    }else false
   }
 
   def checkChosenField(field: Int): Boolean = {
     if (board(field) == 0) false
-    else if (activePlayer == PLAYER_1_ROUND) {
-      if (field < FIRST_INDEX_PLAYER1 || field > HOLE_PLAYER1 - 1) false
+    else if (activePlayer == PLAYER_1) {
+      if (field < INDEX1_PLAYER1 || field > HOLE_PLAYER1 - 1) false
       else true
     } else {
-      if (field < FIRST_INDEX_PLAYER2 || field > HOLE_PLAYER2 - 1) false
+      if (field < INDEX2_PLAYER2 || field > HOLE_PLAYER2 - 1) false
       else true
     }
   }
@@ -103,29 +99,26 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   }
 
   private def lastStone(indexOfLastMovedStone: Int): Unit = {
-    if (activePlayer == PLAYER_1_ROUND && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= FIRST_INDEX_PLAYER1 && indexOfLastMovedStone < HOLE_PLAYER1)
-        stealStones(HOLE_PLAYER2, HOLE_PLAYER1, indexOfLastMovedStone)
-    else if (activePlayer == PLAYER_2_ROUND && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= FIRST_INDEX_PLAYER2 && indexOfLastMovedStone < HOLE_PLAYER2)
-        stealStones(HOLE_PLAYER1, HOLE_PLAYER2, indexOfLastMovedStone)
+    if ((activePlayer == PLAYER_1 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX1_PLAYER1 && indexOfLastMovedStone < HOLE_PLAYER1) || (activePlayer == PLAYER_2 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX2_PLAYER2 && indexOfLastMovedStone < HOLE_PLAYER2))
+        stealStones(indexOfLastMovedStone)
   }
 
-  def stealStones(index1: Int, index2: Int, indexOfHole: Int): Unit = {
+  def stealStones(indexOfHole: Int): Unit = {
     val indexToStealFrom = 12 - indexOfHole
-    board(index2) += board(indexToStealFrom)
+    board(indexOfHole) += board(indexToStealFrom)
     board(indexToStealFrom) = 0
   }
-
 
 
   // get and present results
 
   def countPlayerResultsDifference(): Int = {
-    if (activePlayer == PLAYER_1_ROUND) board(HOLE_PLAYER1) - board(HOLE_PLAYER2)
+    if (activePlayer == PLAYER_1) board(HOLE_PLAYER1) - board(HOLE_PLAYER2)
     else board(HOLE_PLAYER2) - board(HOLE_PLAYER1)
   }
 
-  private def countPlayersResults(): (Int,Int) = {
-    def countPlayersResultsInner(index: Int, results: (Int,Int)): (Int,Int) =
+  private def countPlayersResults(): (Int, Int) = {
+    def countPlayersResultsInner(index: Int, results: (Int, Int)): (Int, Int) =
       if (index <= HOLE_PLAYER1)
         countPlayersResultsInner(index + 1, (results._1 + board(index), results._2))
       else if (index > HOLE_PLAYER1 && index <= HOLE_PLAYER2)
@@ -146,7 +139,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   }
 
   private def printWhoPlay(): String = {
-    if (activePlayer == PLAYER_1_ROUND)
+    if (activePlayer == PLAYER_1)
       "          Player 1 play          \n"
     else
       "          Player 2 play          \n"

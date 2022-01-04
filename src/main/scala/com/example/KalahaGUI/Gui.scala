@@ -1,17 +1,16 @@
 package com.example.KalahaGUI
 
-import akka.actor.{ActorSystem, Props}
 import com.example.GameboardPackage.Game
 import com.example.ServerPackage.Server
 import com.example.UserPackage.{Computer, User}
-
 import java.awt.event.ActionEvent
 import java.awt.{BorderLayout, GridLayout, Label}
 import javax.swing.{JButton, JFrame, JPanel, JTextField, JTextPane, WindowConstants}
 import javax.swing.text.{SimpleAttributeSet, StyleConstants}
 
-class KalahaGUI {
+class Gui {
 
+  private val buttonVersion1 = new JButton("Computer - Computer")
   private val buttonVersion2 = new JButton("USER - Computer")
   private val buttonVersion3 = new JButton("USER - USER")
   private val buttonPlayer1 = new JButton("Player 1")
@@ -33,7 +32,8 @@ class KalahaGUI {
 
   def buildGameLayout() = {
 
-    panelNorth.setLayout(new GridLayout(1, 2))
+    panelNorth.setLayout(new GridLayout(1, 3))
+    panelNorth.add(buttonVersion1)
     panelNorth.add(buttonVersion2)
     panelNorth.add(buttonVersion3)
     frame.add(panelNorth, BorderLayout.NORTH)
@@ -64,6 +64,8 @@ class KalahaGUI {
     gameWindow.setParagraphAttributes(attribs, true)
     frame.add(panelCenter, BorderLayout.CENTER)
 
+    buttonVersion1.addActionListener(
+      (e: ActionEvent) => playOfBots(gameWindow, panelEast))
     buttonVersion2.addActionListener(
       (e: ActionEvent) => playOfOneHumenUser(buttonPlayer1, user1TextInput, gameWindow, panelEast))
     buttonVersion3.addActionListener(
@@ -74,12 +76,22 @@ class KalahaGUI {
     frame.setVisible(true)
   }
 
+  def playOfBots(gameMessageOutput: JTextPane, user1Panel: JPanel): Unit = {
+    val game = new Game(Game.createBoardArray(6), Game.getFirstPlayer())
+    val player1 = new Computer(game, gameMessageOutput)
+    val player2 = new Computer(game, gameMessageOutput)
+    player1.setEnemy(player2)
+    player2.setEnemy(player1)
+    val server = new Server(game, gameMessageOutput)
+    server.startGame()
+    server.processGame(player1)
+  }
 
   def playOfOneHumenUser(userButton1: JButton, user1TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel): Unit = {
     user1Panel.setVisible(true)
 
     val game = new Game(Game.createBoardArray(6), Game.getFirstPlayer())
-    val player1 = new User(userButton1.getText, userButton1, user1TextInput, game, gameMessageOutput)
+    val player1 = new User(userButton1, user1TextInput, game, gameMessageOutput)
     val player2 = new Computer(game, gameMessageOutput)
     player1.setEnemy(player2)
     player2.setEnemy(player1)
@@ -94,8 +106,8 @@ class KalahaGUI {
     user2Panel.setVisible(true)
 
     val game = new Game(Game.createBoardArray(6), Game.getFirstPlayer())
-    val player1 = new User(userButton1.getText, userButton1, user1TextInput, game, gameMessageOutput)
-    val player2 = new User(userButton2.getText, userButton2, user2TextInput, game, gameMessageOutput)
+    val player1 = new User(userButton1, user1TextInput, game, gameMessageOutput)
+    val player2 = new User(userButton2, user2TextInput, game, gameMessageOutput)
     player1.setEnemy(player2)
     player2.setEnemy(player1)
     val server = new Server(game, gameMessageOutput)

@@ -27,7 +27,13 @@ class Server(private val game: Game, private val gamePane: JTextPane) {
   }
 
   def processGame(player: Player): Unit = {
-    player.moveRequest(game)
+    try {
+      val result = Future {player.moveRequest(game); true}
+      Await.result(result, 4.second)
+    }catch{ case _: TimeoutException => gamePane.setText("30 seconds without a move. Game over")}
+
+
+    //player.moveRequest(game)
     //FutureUtil.futureWithTimeout(Future{player.moveRequest(game)}, new FiniteDuration(30, TimeUnit.SECONDS))
     //val f = Future{player.moveRequest(game)}
     //try {
