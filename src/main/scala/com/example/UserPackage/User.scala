@@ -12,7 +12,6 @@ class User(private val userMoveButton: JButton, private val userText: JTextField
 
   override def moveRequest(board: Game): Unit = {
       userMoveButton.setText("Your turn!")
-      //while(userText.getText().equals("")) true
   }
 
   userMoveButton.addActionListener((e: ActionEvent) => {

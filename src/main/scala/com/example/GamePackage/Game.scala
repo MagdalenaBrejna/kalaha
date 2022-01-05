@@ -13,7 +13,7 @@ object Game {
   }
 }
 
-class Game(private var board: Array[Int], private var activePlayer: Int){
+class Game(private var board: Array[Int], private var activePlayer: Int) {
   private val PLAYER_1 = 1
   private val PLAYER_2 = 2
   private val INDEX1_PLAYER1 = 0

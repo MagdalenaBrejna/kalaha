@@ -13,7 +13,7 @@ class Computer(private val game: Game, private val gamePane: JTextPane, private 
   override def moveRequest(board: Game): Unit = {
     val decisionTree = new DecisionDifferenceTree(board)
     decisionTree.makeTree()
-    Thread.sleep(500)
+    Thread.sleep(600)
     server.moveReceived(enemy, decisionTree.findMaxScoreHole())
   }
 }
