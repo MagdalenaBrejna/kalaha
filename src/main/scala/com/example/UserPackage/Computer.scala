@@ -1,6 +1,6 @@
 package com.example.UserPackage
 
-import com.example.DecisionTreePackage.DecisionTree
+import com.example.DecisionPackage.DecisionDifferenceTree
 import com.example.GameboardPackage.Game
 import javax.swing.JTextPane
 
@@ -11,9 +11,9 @@ class Computer(private val game: Game, private val gamePane: JTextPane, private 
   }
 
   override def moveRequest(board: Game): Unit = {
-    val decisionTree = new DecisionTree(board)
+    val decisionTree = new DecisionDifferenceTree(board)
     decisionTree.makeTree()
-    Thread.sleep(1000)
+    Thread.sleep(500)
     server.moveReceived(enemy, decisionTree.findMaxScoreHole())
   }
 }
