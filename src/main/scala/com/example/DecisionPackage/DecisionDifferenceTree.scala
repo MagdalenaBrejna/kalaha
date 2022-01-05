@@ -1,11 +1,11 @@
 package com.example.DecisionPackage
 
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 import scala.annotation.tailrec
 
 class DecisionDifferenceTree(var game: Game) {
 
-  private val root = new Node(game.boardClone(), game.getActivePlayerNumber,0,null,-1)
+  private val root = new Node(game.cloneBoard(), game.getActivePlayerNumber,0,null,-1)
 
   def makeTree(): Unit = {
     @tailrec

@@ -1,6 +1,6 @@
 package com.example.KalahaGUI
 
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 import com.example.ServerPackage.Server
 import com.example.UserPackage.{Computer, User}
 import java.awt.event.ActionEvent
@@ -98,8 +98,6 @@ class Gui {
     val server = new Server(game, gameMessageOutput)
     server.startGame()
   }
-
-
 
   def playOfTwoHumanUsers(userButton1: JButton, userButton2: JButton, user1TextInput: JTextField, user2TextInput: JTextField, gameMessageOutput: JTextPane, user1Panel: JPanel, user2Panel: JPanel): Unit = {
     user1Panel.setVisible(true)

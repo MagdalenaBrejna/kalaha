@@ -1,6 +1,6 @@
 package com.example.DecisionPackage
 
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 
 class Node(private val board: Game, private val playerNumber: Int, private val level: Int, private val parent: Node, private val fieldChoice: Int) {
   private val PLAYER_1 = 1
@@ -47,7 +47,7 @@ class Node(private val board: Game, private val playerNumber: Int, private val l
       if ((board.getActivePlayerNumber == PLAYER_1 && (currentIndex >= HOLE_PLAYER1 || currentIndex < INDEX1_PLAYER1)) || (board.getActivePlayerNumber == PLAYER_2 && (currentIndex >= HOLE2_PLAYER2 || currentIndex < INDEX2_PLAYER2))) Nil
       else {
         if (!board.checkIfEnd() && board.getBoardHole(currentIndex) != 0) {
-          val testBoard = board.boardClone()
+          val testBoard = board.cloneBoard()
           testBoard.processPlayerMove(currentIndex)
           val child = new Node(testBoard, playerNumber, level + 1, this, currentIndex)
           child :: findNodeChildrenInner(currentIndex + 1)

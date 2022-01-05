@@ -1,33 +1,30 @@
-package com.example.GameboardPackage
-
-import com.example.GameboardPackage.Game._
+package com.example.GamePackage
 
 object Game {
+
+  def getFirstPlayer(): Int = { 1 }
+
+  def createBoardArray(numberOfStones: Int): Array[Int] = {
+    def createBoardArrayInner(currentIndex:Int, numberOfStones:Int): List[Int] =
+      if (currentIndex > 13) Nil
+      else if ((currentIndex + 1)%7 == 0) 0 :: createBoardArrayInner(currentIndex + 1, numberOfStones)
+      else numberOfStones :: createBoardArrayInner(currentIndex + 1, numberOfStones)
+    createBoardArrayInner(0, numberOfStones).toArray
+  }
+}
+
+class Game(private var board: Array[Int], private var activePlayer: Int){
   private val PLAYER_1 = 1
   private val PLAYER_2 = 2
   private val INDEX1_PLAYER1 = 0
-  private val INDEX2_PLAYER2 = 7
+  private val INDEX1_PLAYER2 = 7
   private val HOLE_PLAYER1 = 6
   private val HOLE_PLAYER2 = 13
   private val HOLES_NUMBER = 14
 
-  def createBoardArray(numberOfStones: Int): Array[Int] = {
-    def createBoardArrayInner(currentIndex:Int, numberOfStones:Int): List[Int] = {
-      if (currentIndex > HOLE_PLAYER2) Nil
-      else if ((currentIndex + 1)%7 == 0) 0 :: createBoardArrayInner(currentIndex + 1, numberOfStones)
-      else numberOfStones :: createBoardArrayInner(currentIndex + 1, numberOfStones)
-    }
-    createBoardArrayInner(INDEX1_PLAYER1,numberOfStones).toArray
-  }
-
-  def getFirstPlayer(): Int = { 1 }
-}
-
-class Game(private var board: Array[Int], private var activePlayer: Int){
-
   // game processing helpers
 
-  def boardClone(): Game = {
+  def cloneBoard(): Game = {
     new Game(board.clone(), activePlayer)
   }
 
@@ -47,7 +44,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
 
 
   def checkIfEnd(): Boolean = {
-    if ((board.slice(INDEX1_PLAYER1, HOLE_PLAYER1).sum == 0 && activePlayer == PLAYER_1) || (board.slice(INDEX2_PLAYER2, HOLE_PLAYER2).sum == 0 && activePlayer == PLAYER_2)) true
+    if ((board.slice(INDEX1_PLAYER1, HOLE_PLAYER1).sum == 0 && activePlayer == PLAYER_1) || (board.slice(INDEX1_PLAYER2, HOLE_PLAYER2).sum == 0 && activePlayer == PLAYER_2)) true
     else false
   }
 
@@ -72,11 +69,10 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
             if (index != HOLE_PLAYER1) {
               board(index) = board(index) + 1
               processPlayerMoveInner((index + 1) % HOLES_NUMBER, stonesToReplace - 1)
-            } else processPlayerMoveInner(INDEX2_PLAYER2, stonesToReplace)
+            } else processPlayerMoveInner(INDEX1_PLAYER2, stonesToReplace)
           }
 
         } else allStonesMoved(index)
-
       processPlayerMoveInner(chosenField + 1, stonesNumber)
       true
     }else false
@@ -85,11 +81,9 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   def checkChosenField(field: Int): Boolean = {
     if (board(field) == 0) false
     else if (activePlayer == PLAYER_1) {
-      if (field < INDEX1_PLAYER1 || field > HOLE_PLAYER1 - 1) false
-      else true
+      if (field < INDEX1_PLAYER1 || field > HOLE_PLAYER1 - 1) false else true
     } else {
-      if (field < INDEX2_PLAYER2 || field > HOLE_PLAYER2 - 1) false
-      else true
+      if (field < INDEX1_PLAYER2 || field > HOLE_PLAYER2 - 1) false else true
     }
   }
 
@@ -99,7 +93,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   }
 
   private def lastStone(indexOfLastMovedStone: Int): Unit = {
-    if ((activePlayer == PLAYER_1 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX1_PLAYER1 && indexOfLastMovedStone < HOLE_PLAYER1) || (activePlayer == PLAYER_2 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX2_PLAYER2 && indexOfLastMovedStone < HOLE_PLAYER2))
+    if ((activePlayer == PLAYER_1 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX1_PLAYER1 && indexOfLastMovedStone < HOLE_PLAYER1) || (activePlayer == PLAYER_2 && board(indexOfLastMovedStone) - 1 == 0 && indexOfLastMovedStone >= INDEX1_PLAYER2 && indexOfLastMovedStone < HOLE_PLAYER2))
         stealStones(indexOfLastMovedStone)
   }
 
@@ -118,14 +112,7 @@ class Game(private var board: Array[Int], private var activePlayer: Int){
   }
 
   private def countPlayersResults(): (Int, Int) = {
-    def countPlayersResultsInner(index: Int, results: (Int, Int)): (Int, Int) =
-      if (index <= HOLE_PLAYER1)
-        countPlayersResultsInner(index + 1, (results._1 + board(index), results._2))
-      else if (index > HOLE_PLAYER1 && index <= HOLE_PLAYER2)
-        countPlayersResultsInner(index + 1, (results._1, results._2 + board(index)))
-      else
-        results
-    countPlayersResultsInner(0, (0,0))
+    (board.slice(INDEX1_PLAYER1, HOLE_PLAYER1 + 1).sum, board.slice(INDEX1_PLAYER2, HOLE_PLAYER2 + 1).sum)
   }
 
   def printGameResult(): String = {

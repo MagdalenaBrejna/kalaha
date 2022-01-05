@@ -1,7 +1,7 @@
 package com.example.UserPackage
 
 import com.example.DecisionPackage.DecisionDifferenceTree
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 import javax.swing.JTextPane
 
 class Computer(private val game: Game, private val gamePane: JTextPane, private var enemy: Player = null) extends Player(game, gamePane) {

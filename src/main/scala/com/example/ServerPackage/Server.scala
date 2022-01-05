@@ -1,7 +1,7 @@
 package com.example.ServerPackage
 
 import akka.util.Timeout
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 import com.example.UserPackage.{Player, User}
 
 import java.util.concurrent.{TimeUnit, TimeoutException}

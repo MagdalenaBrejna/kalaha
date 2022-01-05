@@ -1,6 +1,6 @@
 package com.example.UserPackage
 
-import com.example.GameboardPackage.Game
+import com.example.GamePackage.Game
 import java.awt.event.{ActionEvent}
 import javax.swing._
 
